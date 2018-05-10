@@ -2,7 +2,7 @@
   'use strict';
 
   window._ = {};
-  
+
   // Returns whatever value is passed as the argument. This function doesn't
   // seem very useful, but remember it--if a function needs to provide an
   // iterator when the user does not pass one in, this will be handy.
@@ -77,18 +77,26 @@
   _.filter = function(collection, test) {
     var result = [];
       _.each(collection, function(x){
-        if (test(x)) result.push(x);
+        if (test(x)) {
+          result.push(x);
+        }
       });
     return result;
   };
 
   // Return all elements of an array that don't pass a truth test.
   _.reject = function(collection, test) {
-    var result = [];
-    _.each(collection, function(x) {
-      if (!test(x)) result.push(x);
+    // var result = [];
+    // _.each(collection, function(x) {
+    //   if (!test(x)) {
+    //     result.push(x);
+    //   }
+    // });
+    // return result;
+
+    return _.filter(collection, function(x){
+      return !test(x);
     });
-    return result;
   };
 
   // Produce a duplicate-free version of the array.
@@ -173,29 +181,19 @@
 
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
-  if(!arguments[1]){
-        iterator = _.identity;
-      }
-      for(var i = 0; i < collection.length; i++){
-        if(!iterator(collection[i])){
-          return false;
-        }
-      }
-   return true;
+    iterator = iterator || _.identity;
+    return !!_.reduce(collection, function(trueSoFar, value){
+      return trueSoFar && iterator(value);
+    }, true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
-  if(!arguments[1]){
-        iterator = _.identity;
-      }
-      for(var i=0; i<collection.length; i++){
-        if(iterator(collection[i])){
-          return true;
-        }
-      }
-    return false;
+    iterator = iterator || _.identity;
+    return !!_.reduce(collection, function(trueSoFar, value){
+      return trueSoFar || iterator(value);
+    }, false);
   };
 
 
@@ -218,14 +216,26 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
-  return obj;
+     _.each(arguments, function(source){
+      _.each(source, function(value, key){
+          obj[key] = value;
+      });
+    });
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    _.each(arguments, function(source){
+      _.each(source, function(value, key){
+        if(!(obj.hasOwnProperty(key))){
+          obj[key] = value;
+        }
+      });
+    });
+    return obj;
   };
-
 
   /**
    * FUNCTIONS
@@ -267,6 +277,14 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    var store = {};
+      return function() {
+        var key = JSON.stringify(arguments);
+        if(store[key]=== undefined){
+          store[key] = func.apply(this, arguments);
+        }
+      return store[key];
+    };
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -276,6 +294,10 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var args = Array.prototype.slice.call(arguments ,2);
+    setTimeout(function() {
+      func.apply(this, args);
+    }, wait);
   };
 
 
@@ -290,6 +312,14 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var result = [];
+    var random;
+
+    for (var i = 0; i < array.length; i++) {
+      random = Math.floor(Math.random() * 10);
+      result.splice(random, 0, array[i]);
+    }
+    return result;
   };
 
 
@@ -346,3 +376,5 @@
   _.throttle = function(func, wait) {
   };
 }());
+
+//PW: hack-reactor-nation
